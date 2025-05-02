@@ -12,3 +12,5 @@ require (
 )
 
 require github.com/google/go-querystring v1.1.0 // indirect
+
+replace github.com/rystaf/go-lemmy => github.com/fedihosting-foundation-forks/go-lemmy v0.19.1-0.20240211005246-545eb219c2f0
