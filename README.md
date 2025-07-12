@@ -13,7 +13,7 @@ Transform any Lemmy instance into a desktop-style interface reminiscent of old R
 
 **📋 About This Fork**
 
-This project was originally created by [rystaf](https://github.com/rystaf/mlmym). As the original project is no longer maintained, this fork provides continued support for the instance at [old.lemmy.world](https://old.lemmy.world/).
+This project was originally created by [rystaf](https://github.com/rystaf/mlmym). As the original project is no longer maintained, this fork is receiving limited life support to support the instance at [old.lemmy.world](https://old.lemmy.world/).
 
 ## ✨ Features
 
