@@ -160,40 +160,58 @@ func (s State) Unknown() string {
 	return ""
 }
 func (p State) SortBy(v string) string {
-	var q string
+	q := url.Values{}
 	if p.Query != "" || p.SearchType == "Communities" {
-		q = "q=" + url.QueryEscape(p.Query) + "&communityname=" + p.CommunityName + "&username=" + p.UserName + "&searchtype=" + p.SearchType + "&"
+		q.Set("q", p.Query)
+		q.Set("communityname", p.CommunityName)
+		q.Set("username", p.UserName)
+		q.Set("searchtype", p.SearchType)
 	}
 	if p.Op == "Saved" {
-		q = "view=Saved&"
+		q.Set("view", "Saved")
 	}
-	return "?" + q + "sort=" + v + "&listingType=" + p.Listing
+	q.Set("sort", v)
+	q.Set("listingType", p.Listing)
+	return "?" + q.Encode()
 }
 func (p State) ListBy(v string) string {
-	var q string
+	q := url.Values{}
 	if p.Query != "" || p.SearchType == "Communities" {
-		q = "q=" + url.QueryEscape(p.Query) + "&communityname=" + p.CommunityName + "&username=" + p.UserName + "&searchtype=" + p.SearchType + "&"
+		q.Set("q", p.Query)
+		q.Set("communityname", p.CommunityName)
+		q.Set("username", p.UserName)
+		q.Set("searchtype", p.SearchType)
 	}
-	return "?" + q + "sort=" + p.Sort + "&listingType=" + v
+	q.Set("sort", p.Sort)
+	q.Set("listingType", v)
+	return "?" + q.Encode()
 }
 
 func (p State) PrevPage() string {
-	listing := "&listingType=" + p.Listing
-	var q string
+	q := url.Values{}
 	if p.Query != "" || p.SearchType == "Communities" {
-		q = "q=" + p.Query + "&communityname=" + p.CommunityName + "&username=" + p.UserName + "&searchtype=" + p.SearchType + "&"
+		q.Set("q", p.Query)
+		q.Set("communityname", p.CommunityName)
+		q.Set("username", p.UserName)
+		q.Set("searchtype", p.SearchType)
 	}
-	page := strconv.Itoa(p.Page - 1)
-	return "?" + q + "sort=" + p.Sort + listing + "&page=" + page
+	q.Set("sort", p.Sort)
+	q.Set("listingType", p.Listing)
+	q.Set("page", strconv.Itoa(p.Page-1))
+	return "?" + q.Encode()
 }
 func (p State) NextPage() string {
-	listing := "&listingType=" + p.Listing
-	var q string
+	q := url.Values{}
 	if p.Query != "" || p.SearchType == "Communities" {
-		q = "q=" + p.Query + "&communityname=" + p.CommunityName + "&username=" + p.UserName + "&searchtype=" + p.SearchType + "&"
+		q.Set("q", p.Query)
+		q.Set("communityname", p.CommunityName)
+		q.Set("username", p.UserName)
+		q.Set("searchtype", p.SearchType)
 	}
-	page := strconv.Itoa(p.Page + 1)
-	return "?" + q + "sort=" + p.Sort + listing + "&page=" + page
+	q.Set("sort", p.Sort)
+	q.Set("listingType", p.Listing)
+	q.Set("page", strconv.Itoa(p.Page-1))
+	return "?" + q.Encode()
 }
 func (p State) Rank(v int) int {
 	return ((p.Page - 1) * 25) + v + 1
