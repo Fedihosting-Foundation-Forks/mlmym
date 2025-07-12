@@ -1,4 +1,6 @@
-mlmym
-VERSION
 *.toml
 *.txt
+CLAUDE.md
+VERSION
+mlmym
+.claude/
