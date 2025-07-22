@@ -22,8 +22,8 @@ jobs:
       annotations: ${{ steps.meta.outputs.annotations }}
       json: ${{ steps.meta.outputs.json }}
       git-version: ${{ steps.git-meta.outputs.git-version }}
-      image-name: ${{ steps.custom-meta.outputs.image-name }}
-      tag-name: ${{ steps.custom-meta.outputs.tag-name }}
+      image-name: ${{ steps.image.outputs.image-name }}
+      tag-name: ${{ steps.image.outputs.tag-name }}
 
     steps:
       - name: Checkout
