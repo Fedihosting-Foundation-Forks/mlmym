@@ -81,6 +81,22 @@ LEMMY_DOMAIN='lemmy.world' ./mlmym --addr :8080
 
 This mode provides a dedicated frontend for a specific Lemmy instance.
 
+#### 🔧 Internal Domain Override
+When running mlmym in a container environment, you may want API calls to go directly to the Lemmy container instead of through the public domain. Set `LEMMY_DOMAIN_INTERNAL` to override the API endpoint while keeping `LEMMY_DOMAIN` for user-facing URLs.
+
+```bash
+# Docker Compose example - mlmym talks directly to lemmy container
+docker run -it \
+  -e LEMMY_DOMAIN='lemmy.world' \
+  -e LEMMY_DOMAIN_INTERNAL='http://lemmy:8536' \
+  -p "8080:8080" \
+  ghcr.io/fedihosting-foundation-forks/mlmym:latest
+```
+
+This enables the traffic flow: `User → webserver → mlmym → lemmy` instead of `User → webserver → mlmym → webserver → lemmy`.
+
+**Note:** `LEMMY_DOMAIN_INTERNAL` only works when `LEMMY_DOMAIN` is also set (single instance mode).
+
 ### 🎨 Default User Settings
 
 Customize the default experience for all users by setting these environment variables:

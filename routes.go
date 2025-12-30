@@ -299,7 +299,12 @@ func Initialize(Host string, r *http.Request) (State, error) {
 		remoteAddr = r.Header.Get("CF-Connecting-IP")
 	}
 	client := http.Client{Transport: NewAddHeaderTransport(remoteAddr)}
-	c, err := lemmy.NewWithClient("https://"+Host, &client)
+	// Use internal domain for API calls if configured, otherwise use public domain
+	apiHost := "https://" + Host
+	if internalDomain := os.Getenv("LEMMY_DOMAIN_INTERNAL"); internalDomain != "" && lemmyDomain != "" {
+		apiHost = internalDomain
+	}
+	c, err := lemmy.NewWithClient(apiHost, &client)
 	if err != nil {
 		fmt.Println(err)
 		state.Status = http.StatusInternalServerError
@@ -441,7 +446,11 @@ type NodeInfo struct {
 func IsLemmy(domain string, remoteAddr string) bool {
 	client := http.Client{Transport: NewAddHeaderTransport(remoteAddr)}
 	var nodeInfo NodeInfo
-	res, err := client.Get("https://" + domain + "/nodeinfo/2.0.json")
+	apiURL := "https://" + domain + "/nodeinfo/2.0.json"
+	if internalDomain := os.Getenv("LEMMY_DOMAIN_INTERNAL"); internalDomain != "" && domain == os.Getenv("LEMMY_DOMAIN") {
+		apiURL = internalDomain + "/nodeinfo/2.0.json"
+	}
+	res, err := client.Get(apiURL)
 	if err != nil {
 		return false
 	}
@@ -566,7 +575,11 @@ func ResolveId(r *http.Request, class string, id string, host string) string {
 		remoteAddr = r.Header.Get("CF-Connecting-IP")
 	}
 	client := http.Client{Transport: NewAddHeaderTransport(remoteAddr)}
-	c, err := lemmy.NewWithClient("https://"+host, &client)
+	apiHost := "https://" + host
+	if internalDomain := os.Getenv("LEMMY_DOMAIN_INTERNAL"); internalDomain != "" && os.Getenv("LEMMY_DOMAIN") != "" {
+		apiHost = internalDomain
+	}
+	c, err := lemmy.NewWithClient(apiHost, &client)
 	if err != nil {
 		return ""
 	}

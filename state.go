@@ -268,7 +268,11 @@ func (state *State) ParseQuery(RawQuery string) {
 
 func (state *State) LemmyError(domain string) error {
 	var nodeInfo NodeInfo
-	res, err := state.HTTPClient.Get("https://" + domain + "/nodeinfo/2.0.json")
+	apiURL := "https://" + domain + "/nodeinfo/2.0.json"
+	if internalDomain := os.Getenv("LEMMY_DOMAIN_INTERNAL"); internalDomain != "" && domain == os.Getenv("LEMMY_DOMAIN") {
+		apiURL = internalDomain + "/nodeinfo/2.0.json"
+	}
+	res, err := state.HTTPClient.Get(apiURL)
 	if err != nil {
 		return err
 	}
@@ -757,7 +761,11 @@ func (state *State) UploadImage(file multipart.File, header *multipart.FileHeade
 	if host == "." {
 		host = os.Getenv("LEMMY_DOMAIN")
 	}
-	req, err := http.NewRequest("POST", "https://"+host+"/pictrs/image", body)
+	apiURL := "https://" + host + "/pictrs/image"
+	if internalDomain := os.Getenv("LEMMY_DOMAIN_INTERNAL"); internalDomain != "" && os.Getenv("LEMMY_DOMAIN") != "" {
+		apiURL = internalDomain + "/pictrs/image"
+	}
+	req, err := http.NewRequest("POST", apiURL, body)
 	if err != nil {
 		return nil, err
 	}
