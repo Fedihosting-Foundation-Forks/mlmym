@@ -210,7 +210,7 @@ func (p State) NextPage() string {
 	}
 	q.Set("sort", p.Sort)
 	q.Set("listingType", p.Listing)
-	q.Set("page", strconv.Itoa(p.Page-1))
+	q.Set("page", strconv.Itoa(p.Page+1))
 	return "?" + q.Encode()
 }
 func (p State) Rank(v int) int {
