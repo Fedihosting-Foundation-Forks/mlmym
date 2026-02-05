@@ -12,7 +12,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -138,7 +137,7 @@ func (s State) Unknown() string {
 		}
 		if matches[0][2] != s.Host {
 			remote := "/" + matches[0][2] + "/c/" + matches[0][1]
-			if os.Getenv("LEMMY_DOMAIN") != "" {
+			if lemmyDomain != "" {
 				remote = "https:/" + remote
 			}
 			return remote
@@ -151,7 +150,7 @@ func (s State) Unknown() string {
 		}
 		if matches[0][2] != s.Host {
 			remote := "/" + matches[0][2] + "/u/" + matches[0][1]
-			if os.Getenv("LEMMY_DOMAIN") != "" {
+			if lemmyDomain != "" {
 				remote = "https:/" + remote
 			}
 			return remote
@@ -268,7 +267,13 @@ func (state *State) ParseQuery(RawQuery string) {
 
 func (state *State) LemmyError(domain string) error {
 	var nodeInfo NodeInfo
-	res, err := state.HTTPClient.Get("https://" + domain + "/nodeinfo/2.0.json")
+	var apiURL string
+	if lemmyInternalURL != "" && domain == lemmyDomain {
+		apiURL = lemmyInternalURL + "/nodeinfo/2.0.json"
+	} else {
+		apiURL = "https://" + domain + "/nodeinfo/2.0.json"
+	}
+	res, err := state.HTTPClient.Get(apiURL)
 	if err != nil {
 		return err
 	}
@@ -755,9 +760,15 @@ func (state *State) UploadImage(file multipart.File, header *multipart.FileHeade
 	writer.Close()
 	host := state.Host
 	if host == "." {
-		host = os.Getenv("LEMMY_DOMAIN")
+		host = lemmyDomain
 	}
-	req, err := http.NewRequest("POST", "https://"+host+"/pictrs/image", body)
+	var apiURL string
+	if lemmyInternalURL != "" {
+		apiURL = lemmyInternalURL + "/pictrs/image"
+	} else {
+		apiURL = "https://" + host + "/pictrs/image"
+	}
+	req, err := http.NewRequest("POST", apiURL, body)
 	if err != nil {
 		return nil, err
 	}

@@ -23,6 +23,9 @@ var addr = flag.String("addr", ":80", "http service address")
 var md goldmark.Markdown
 var templates map[string]*template.Template
 
+var lemmyDomain string
+var lemmyInternalURL string
+
 type AddHeaderTransport struct {
 	T          http.RoundTripper
 	ForwardFor string
@@ -53,6 +56,10 @@ func NewAddHeaderTransport(remoteAddr string) *AddHeaderTransport {
 }
 
 func init() {
+	lemmyDomain = os.Getenv("LEMMY_DOMAIN")
+	if lemmyDomain != "" {
+		lemmyInternalURL = os.Getenv("LEMMY_INTERNAL_URL")
+	}
 	md = goldmark.New(goldmark.WithExtensions(
 		extension.Linkify,
 		extension.Table,

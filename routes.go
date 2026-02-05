@@ -43,8 +43,8 @@ var isImage = func(u string) bool {
 
 var funcMap = template.FuncMap{
 	"host": func(host string) string {
-		if l := os.Getenv("LEMMY_DOMAIN"); l != "" {
-			return l
+		if lemmyDomain != "" {
+			return lemmyDomain
 		}
 		return host
 	},
@@ -289,7 +289,6 @@ func Initialize(Host string, r *http.Request) (State, error) {
 	if watch != nil {
 		state.Watch = *watch
 	}
-	lemmyDomain := os.Getenv("LEMMY_DOMAIN")
 	if lemmyDomain != "" {
 		state.Host = "."
 		Host = lemmyDomain
@@ -299,7 +298,13 @@ func Initialize(Host string, r *http.Request) (State, error) {
 		remoteAddr = r.Header.Get("CF-Connecting-IP")
 	}
 	client := http.Client{Transport: NewAddHeaderTransport(remoteAddr)}
-	c, err := lemmy.NewWithClient("https://"+Host, &client)
+	var apiHost string
+	if lemmyInternalURL != "" {
+		apiHost = lemmyInternalURL
+	} else {
+		apiHost = "https://" + Host
+	}
+	c, err := lemmy.NewWithClient(apiHost, &client)
 	if err != nil {
 		fmt.Println(err)
 		state.Status = http.StatusInternalServerError
@@ -441,7 +446,13 @@ type NodeInfo struct {
 func IsLemmy(domain string, remoteAddr string) bool {
 	client := http.Client{Transport: NewAddHeaderTransport(remoteAddr)}
 	var nodeInfo NodeInfo
-	res, err := client.Get("https://" + domain + "/nodeinfo/2.0.json")
+	var apiURL string
+	if lemmyInternalURL != "" && domain == lemmyDomain {
+		apiURL = lemmyInternalURL + "/nodeinfo/2.0.json"
+	} else {
+		apiURL = "https://" + domain + "/nodeinfo/2.0.json"
+	}
+	res, err := client.Get(apiURL)
 	if err != nil {
 		return false
 	}
@@ -566,7 +577,13 @@ func ResolveId(r *http.Request, class string, id string, host string) string {
 		remoteAddr = r.Header.Get("CF-Connecting-IP")
 	}
 	client := http.Client{Transport: NewAddHeaderTransport(remoteAddr)}
-	c, err := lemmy.NewWithClient("https://"+host, &client)
+	var apiHost string
+	if lemmyInternalURL != "" {
+		apiHost = lemmyInternalURL
+	} else {
+		apiHost = "https://" + host
+	}
+	c, err := lemmy.NewWithClient(apiHost, &client)
 	if err != nil {
 		return ""
 	}
@@ -605,7 +622,7 @@ func GetPost(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			})
 			if err != nil {
 				dest := apid
-				if os.Getenv("LEMMY_DOMAIN") == "" {
+				if lemmyDomain == "" {
 					dest = RegReplace(dest, `https:\/\/([a-zA-Z0-9\.\-]+\/post\/\d+)`, `/$1`)
 				}
 				http.Redirect(w, r, dest, http.StatusFound)
@@ -659,7 +676,7 @@ func GetComment(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			})
 			if err != nil {
 				dest := apid
-				if os.Getenv("LEMMY_DOMAIN") == "" {
+				if lemmyDomain == "" {
 					dest = RegReplace(dest, `https:\/\/([a-zA-Z0-9\.\-]+\/comment\/\d+)`, `/$1`)
 				}
 				http.Redirect(w, r, dest, http.StatusFound)
@@ -1102,7 +1119,7 @@ func UserOp(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 	host := state.Host
 	if host == "." {
-		host = os.Getenv("LEMMY_DOMAIN")
+		host = lemmyDomain
 	}
 	switch r.FormValue("op") {
 	case "leave":
@@ -1701,9 +1718,9 @@ func GetLink(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		http.Redirect(w, r, redirect, http.StatusFound)
 		return
 	}
-	if host := os.Getenv("LEMMY_DOMAIN"); host != "" {
+	if lemmyDomain != "" {
 		redirect := dest.Path
-		if host != dest.Host && !strings.Contains(redirect, "@") {
+		if lemmyDomain != dest.Host && !strings.Contains(redirect, "@") {
 			redirect += ("@" + dest.Host)
 		}
 		http.Redirect(w, r, redirect, http.StatusFound)
@@ -1711,9 +1728,8 @@ func GetLink(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 }
 func GetRouter() *httprouter.Router {
-	host := os.Getenv("LEMMY_DOMAIN")
 	router := httprouter.New()
-	if host == "" {
+	if lemmyDomain == "" {
 		router.ServeFiles("/:host/static/*filepath", http.Dir("public"))
 		router.GET("/", GetRoot)
 		router.POST("/", PostRoot)
